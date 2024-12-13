@@ -27,6 +27,7 @@
         android:background="@color/white"
         >
 
+<!--        레이아웃 다시잡기-->
         <LinearLayout
             android:id="@+id/et_search_field"
             android:layout_width="0dp"
