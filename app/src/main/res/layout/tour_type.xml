@@ -1,51 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<com.sothree.slidinguppanel.SlidingUpPanelLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".TourType"
+    android:id="@+id/main_panel"
+    android:gravity="bottom"
+    android:background="#00FFFFFF"
+    app:umanoDragView="@id/drawer"
+    app:umanoPanelHeight="70dp"
+    app:umanoOverlay="true"
+    app:umanoShadowHeight="0dp"
     >
 
-    <com.kakao.vectormap.MapView
-        android:id="@+id/map_view"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        />
-
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
-        android:layout_height="350dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:background="@color/white"
+        android:layout_height="match_parent"
         >
 
-<!--        레이아웃 다시잡기-->
-        <LinearLayout
-            android:id="@+id/et_search_field"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="@+id/btn_search"
-            app:layout_constraintEnd_toStartOf="@+id/btn_search"
+        <com.kakao.vectormap.MapView
+            android:id="@+id/map_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/btn_search"
+            app:layout_constraintTop_toTopOf="parent"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:id="@+id/drawer"
+        android:layout_width="match_parent"
+        android:layout_height="700dp"
+        android:orientation="vertical"
+        android:background="#00000000"
+        >
+
+        <View
+            android:id="@+id/swipe"
+            android:layout_width="60dp"
+            android:layout_height="5dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_gravity="center_horizontal"
+            android:background="#ADADAD"
+            />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="700dp"
+            android:background="@drawable/bottom_slide_panel"
             >
 
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="여행가고 싶은 장소"
+                android:textColor="#171717"
+                android:textSize="18dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginTop="10dp"
+                />
+
+            <TextView
+                android:id="@+id/tv_des_area"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="10dp"
+                android:text="지역을 정해주세요!"
+                android:textSize="14dp"
+                android:textColor="#171717"
+                android:layout_below="@+id/title"
+                />
+
             <LinearLayout
+                android:id="@+id/area_dropdown"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="5dp"
+                android:layout_marginTop="16dp"
+                android:layout_below="@+id/tv_des_area"
                 >
 
                 <Spinner
@@ -55,6 +95,7 @@
                     android:layout_weight="1"
                     android:spinnerMode="dropdown"
                     android:background="@android:color/white"
+                    android:layout_marginRight="20dp"
                     />
 
                 <Spinner
@@ -64,178 +105,62 @@
                     android:layout_weight="1"
                     android:spinnerMode="dropdown"
                     android:background="@android:color/white"
+                    android:layout_marginRight="20dp"
                     />
 
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/tv_des_type"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="타입을 정해주세요!"
+                android:textSize="14dp"
+                android:textColor="#171717"
+                android:layout_below="@+id/area_dropdown"
+                />
+
             <LinearLayout
+                android:id="@+id/type_dropdown"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:layout_marginTop="16dp"
+                android:layout_below="@+id/tv_des_type"
                 >
 
                 <Spinner
-                    android:id="@+id/depth1"
+                    android:id="@+id/type_1"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:spinnerMode="dropdown"
                     android:background="@android:color/white"
+                    android:layout_marginRight="20dp"
                     />
 
                 <Spinner
-                    android:id="@+id/depth2"
+                    android:id="@+id/type_2"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:spinnerMode="dropdown"
                     android:background="@android:color/white"
+                    android:layout_marginRight="20dp"
                     />
 
             </LinearLayout>
 
-        </LinearLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/type_dropdown"
+                tools:listitem="@layout/item_list"
+                />
 
-        <Button
-            android:id="@+id/btn_search"
-            style="@style/Widget.AppCompat.Button.Small"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:text="검색"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            />
+        </RelativeLayout>
+            
+    </LinearLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_list"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:background="#E8EAF6"
-            app:layout_constraintBottom_toTopOf="@+id/btn_nextPage"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btn_search"
-            />
-
-        <Button
-            android:id="@+id/btn_prevPage"
-            style="@style/Widget.AppCompat.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:enabled="false"
-            android:text="이전"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            />
-
-        <Button
-            android:id="@+id/btn_nextPage"
-            style="@style/Widget.AppCompat.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:enabled="false"
-            android:text="다음"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            />
-
-        <TextView
-            android:id="@+id/tv_pageNumber"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="1"
-            android:textColor="?android:attr/textColorPrimary"
-            app:layout_constraintBottom_toBottomOf="@+id/btn_nextPage"
-            app:layout_constraintEnd_toStartOf="@+id/btn_nextPage"
-            app:layout_constraintStart_toEndOf="@+id/btn_prevPage"
-            app:layout_constraintTop_toTopOf="@+id/btn_nextPage"
-            />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-<!--    <LinearLayout-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:orientation="horizontal"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent"-->
-<!--        >-->
-
-<!--        <com.google.android.material.textfield.TextInputLayout-->
-<!--            android:id="@+id/inputLayout"-->
-<!--            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"-->
-<!--            android:layout_width="120dp"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_margin="10dp"-->
-<!--            android:hint="지역 선택"-->
-<!--            app:hintTextColor="#171717"-->
-<!--            android:textColorHint="#171717"-->
-<!--            app:boxBackgroundColor="@color/white"-->
-<!--            app:boxStrokeColor="#4CAF50"-->
-<!--            >-->
-
-<!--            <AutoCompleteTextView-->
-<!--                android:id="@+id/text_item"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:inputType="none"-->
-<!--                android:popupBackground="@android:color/white"-->
-<!--                android:textColor="#171717"-->
-<!--                />-->
-
-<!--        </com.google.android.material.textfield.TextInputLayout>-->
-
-<!--        <com.google.android.material.textfield.TextInputLayout-->
-<!--            android:id="@+id/depth1"-->
-<!--            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"-->
-<!--            android:layout_width="120dp"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_margin="10dp"-->
-<!--            android:hint="지역 선택"-->
-<!--            app:hintTextColor="#171717"-->
-<!--            android:textColorHint="#171717"-->
-<!--            app:boxBackgroundColor="@color/white"-->
-<!--            app:boxStrokeColor="#4CAF50"-->
-<!--            >-->
-
-<!--            <AutoCompleteTextView-->
-<!--                android:id="@+id/depth1_item"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:inputType="none"-->
-<!--                android:popupBackground="@android:color/white"-->
-<!--                android:textColor="#171717"-->
-<!--                />-->
-
-<!--        </com.google.android.material.textfield.TextInputLayout>-->
-
-<!--        <com.google.android.material.textfield.TextInputLayout-->
-<!--            android:id="@+id/depth2"-->
-<!--            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"-->
-<!--            android:layout_width="120dp"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_margin="10dp"-->
-<!--            android:hint="지역 선택"-->
-<!--            app:hintTextColor="#171717"-->
-<!--            android:textColorHint="#171717"-->
-<!--            app:boxBackgroundColor="@color/white"-->
-<!--            app:boxStrokeColor="#4CAF50"-->
-<!--            >-->
-
-<!--            <AutoCompleteTextView-->
-<!--                android:id="@+id/depth2_item"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:inputType="none"-->
-<!--                android:popupBackground="@android:color/white"-->
-<!--                android:textColor="#171717"-->
-<!--                />-->
-
-<!--        </com.google.android.material.textfield.TextInputLayout>-->
-
-<!--    </LinearLayout>-->
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</com.sothree.slidinguppanel.SlidingUpPanelLayout>
