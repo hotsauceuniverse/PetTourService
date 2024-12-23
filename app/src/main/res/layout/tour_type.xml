@@ -96,6 +96,7 @@
                     android:spinnerMode="dropdown"
                     android:background="@android:color/white"
                     android:layout_marginRight="20dp"
+                    android:layout_marginLeft="16dp"
                     />
 
                 <Spinner
@@ -133,31 +134,36 @@
 
                 <Spinner
                     android:id="@+id/type_1"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:spinnerMode="dropdown"
                     android:background="@android:color/white"
                     android:layout_marginRight="20dp"
-                    />
-
-                <Spinner
-                    android:id="@+id/type_2"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:spinnerMode="dropdown"
-                    android:background="@android:color/white"
-                    android:layout_marginRight="20dp"
+                    android:layout_marginLeft="16dp"
                     />
 
             </LinearLayout>
 
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/search_btn"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginTop="15dp"
+                android:text="검색"
+                android:layout_below="@+id/type_dropdown"
+                />
+
             <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/tour_result_recycle"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_below="@+id/type_dropdown"
-                tools:listitem="@layout/item_list"
+                android:layout_below="@+id/search_btn"
+                tools:listitem="@layout/tour_recyclerview"
+                android:layout_marginTop="15dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
                 />
 
         </RelativeLayout>

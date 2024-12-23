@@ -1,9 +1,7 @@
 package com.seyoung.pettourservice;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,8 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -25,12 +21,10 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.material.textfield.TextInputLayout;
 import com.kakao.vectormap.KakaoMap;
 import com.kakao.vectormap.KakaoMapReadyCallback;
 import com.kakao.vectormap.MapLifeCycleCallback;
 import com.kakao.vectormap.MapView;
-import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 //import net.daum.mf.map.api.MapView;
 import net.daum.mf.map.api.MapPOIItem;
@@ -40,19 +34,17 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 
 public class TourType extends AppCompatActivity {
 
     MapView mapView;
     KakaoMap kakaoMap;
     FusedLocationProviderClient fusedLocationClient;
-    SlidingUpPanelLayout Sliding;
     LinearLayout Drawer;
     private String selectedAreaCode;    // 선택된 areaCode를 저장할 변수
 
@@ -93,8 +85,6 @@ public class TourType extends AppCompatActivity {
         Drawer = findViewById(R.id.drawer);
         Drawer.setOnClickListener(null);    // 클릭으로 열고 닫히는 기능 막기
 
-        Sliding = findViewById(R.id.main_panel);
-
         String[] dropdownItems3 = {"Home", "Work", "Other", "Custom"};
         Spinner customSpinner3 = findViewById(R.id.type_1);
         ArrayAdapter<String> adapter3 = new ArrayAdapter<>(
@@ -105,51 +95,45 @@ public class TourType extends AppCompatActivity {
         adapter3.setDropDownViewResource(R.layout.item_list);
         customSpinner3.setAdapter(adapter3);
 
-        String[] dropdownItems4 = {"Home", "Work", "Other", "Custom"};
-        Spinner customSpinner4 = findViewById(R.id.type_2);
-        ArrayAdapter<String> adapter4 = new ArrayAdapter<>(
-                this,
-                R.layout.item_list,
-                dropdownItems4
-        );
-        adapter4.setDropDownViewResource(R.layout.item_list);
-        customSpinner4.setAdapter(adapter4);
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         new getAreaFromLocation().execute();
 
-//        new getsubLocalityFromLocation().execute(); // 지역 데이터를 로드하고 Spinner 설정
+        // 하위 지역 스피너 초기화 (더미 데이터 설정)
+        List<String> dummySubLocality = new ArrayList<>();
+        setupSubLocalitySpinner(dummySubLocality);
     }
 
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-//        if (requestCode == 1000) {
-//            boolean check_result = true;
-//
-//            for (int result : grantResults) {
-//                if (result != PackageManager.PERMISSION_GRANTED) {
-//                    check_result = false;
-//                    break;
-//                }
-//            }
-//
-//            if (check_result == false) {
-//                finish();
-//            }
-//        }
-//    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1000) {
+            boolean check_result = true;
 
-    public class getAreaFromLocation extends AsyncTask<Void, Void, List<String>> {
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    check_result = false;
+                    break;
+                }
+            }
+
+            if (check_result == false) {
+                finish();
+            }
+        }
+    }
+
+    public class getAreaFromLocation extends AsyncTask<Void, Void, Map<String, String>> {
 
         @Override
-        protected List<String> doInBackground(Void... voids) {
-            List<String> areaNames = new ArrayList<>();
+        protected Map<String, String> doInBackground(Void... voids) {
+            Map<String, String> areaData = new LinkedHashMap<>(); // LinkedHashMap으로 순서 보장
 
             try {
                 String code = "e8KTlQRE/BEp0/kRGPGRPDSk2HBjZn253hX1jPyfCE1txYtnRw/Q2n6xRhMx1yHBcah8IxLOsCSrVsejfw4vhQ==";
-                String queryUrl = "https://apis.data.go.kr/B551011/KorPetTourService/areaCode?serviceKey="+ code +"&pageNo=1&numOfRows=20&MobileOS=ETC&MobileApp=AppTest";
+                String queryUrl = "https://apis.data.go.kr/B551011/KorPetTourService/areaCode?serviceKey="
+                        + code
+                        + "&pageNo=1&numOfRows=20&MobileOS=ETC&MobileApp=AppTest";
 
                 URL url = new URL(queryUrl);
                 InputStream inputStream = url.openStream();
@@ -160,20 +144,24 @@ public class TourType extends AppCompatActivity {
 
                 int eventType = parser.getEventType();
                 String tagName;
-                String areaName = null;
+                String name = null, codeValue = null;
 
                 while (eventType != XmlPullParser.END_DOCUMENT) {
                     if (eventType == XmlPullParser.START_TAG) {
                         tagName = parser.getName();
                         if (tagName.equals("name")) {
                             parser.next();
-                            areaName = parser.getText();
+                            name = parser.getText();
+                        } else if (tagName.equals("code")) {
+                            parser.next();
+                            codeValue = parser.getText();
                         }
                     } else if (eventType == XmlPullParser.END_TAG) {
                         tagName = parser.getName();
-                        if (tagName.equals("item") && areaName != null) {
-                            areaNames.add(areaName);
-                            areaName = null;
+                        if (tagName.equals("item") && name != null && codeValue != null) {
+                            areaData.put(name, codeValue);
+                            name = null;
+                            codeValue = null;
                         }
                     }
                     eventType = parser.next();
@@ -182,21 +170,22 @@ public class TourType extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return areaNames;
+            return areaData;
         }
 
         @Override
-        protected void onPostExecute(List<String> areaNames) {
-            super.onPostExecute(areaNames);
-            if (!areaNames.isEmpty()) {
-                setupSpinner(areaNames);
+        protected void onPostExecute(Map<String, String> areaData) {
+            super.onPostExecute(areaData);
+            if (!areaData.isEmpty()) {
+                setupSpinner(areaData);
             }
         }
     }
 
-    private void setupSpinner(List<String> areaNames) {
+    private void setupSpinner(Map<String, String> areaData) {
         // Spinner와 연결
         Spinner areaSpinner = findViewById(R.id.adminArea);
+        List<String> areaNames = new ArrayList<>(areaData.keySet());
         areaNames.add(0, "도/시 선택");
 
         // 어댑터 설정
@@ -207,7 +196,6 @@ public class TourType extends AppCompatActivity {
         ) {
             @Override
             public boolean isEnabled(int position) {
-                // 첫 번째 아이템을 선택할 수 없게 설정
                 return position != 0;
             }
 
@@ -216,7 +204,6 @@ public class TourType extends AppCompatActivity {
                 View view = super.getDropDownView(position, convertView, parent);
                 TextView tv = (TextView) view;
 
-                // 첫 번째 아이템은 비활성화 (회색으로 표시)
                 if (position == 0) {
                     tv.setTextColor(getColor(R.color.gray));
                 } else {
@@ -226,34 +213,23 @@ public class TourType extends AppCompatActivity {
             }
         };
 
-        // 드롭다운 뷰 설정
         adapter.setDropDownViewResource(R.layout.item_list);
-
-        // Spinner에 어댑터 연결
         areaSpinner.setAdapter(adapter);
 
-        // Spinner 선택 이벤트 리스너
         areaSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position == 0) {
-                    // 첫 번째 아이템이 선택되었을 경우 아무 동작도 하지 않음
-                    return;
-                }
-                // 유효한 아이템이 선택되었을 경우 처리
-                String selectedItem = (String) parent.getItemAtPosition(position);
-                Log.d("Spinner", "선택된 아이템: " + selectedItem);
+                if (position == 0) return;
 
-                // 선택된 areaCode 설정
-                selectedAreaCode = String.valueOf(position);        // position값이 아님 변경 필요 (경기도 position = 9 / 실제 전달 해야 할 값 = 31)
-                Log.d("selectedAreaCode   ", "selectedAreaCode   " + selectedAreaCode);
+                String selectedName = areaNames.get(position);  // 실제 전달 해야 할 값 <code> = 31
+                selectedAreaCode = areaData.get(selectedName);  // 선택된 이름으로 코드 조회
+                Log.d("selectedAreaCode", "Selected Area Code: " + selectedAreaCode);
 
-                // 하위 지역 데이터 로드
-                new getsubLocalityFromLocation().execute();
+                new getsubLocalityFromLocation().execute(); // 하위 지역 데이터 로드
             }
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
 
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
             }
         });
     }
@@ -268,7 +244,7 @@ public class TourType extends AppCompatActivity {
                 String queryUrl = "http://apis.data.go.kr/B551011/KorPetTourService/areaCode?serviceKey="
                         + code
                         + "&areaCode=" + selectedAreaCode
-                        + "&pageNo=1&numOfRows=10&MobileOS=ETC&MobileApp=AppTest";
+                        + "&pageNo=1&numOfRows=50&MobileOS=ETC&MobileApp=AppTest";
 
                 Log.d("queryUrl   ", "queryUrl   " + queryUrl);
 
