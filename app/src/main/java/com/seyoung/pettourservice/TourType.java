@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -18,6 +19,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -47,6 +50,12 @@ public class TourType extends AppCompatActivity {
     FusedLocationProviderClient fusedLocationClient;
     LinearLayout Drawer;
     private String selectedAreaCode;    // 선택된 areaCode를 저장할 변수
+    private String selectedSubLocalityCode; // 선택된 SubLocalityCode를 저장할 변수
+    private String selectedTourTypeCode;    // 선택된 TourTypeCode를 저장할 변수
+    Button searchBtn;
+    RecyclerView tourResultRecycle;
+    private TourTypeAdapter mTourTypeAdapter;
+    String selectedTourItem;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -85,23 +94,23 @@ public class TourType extends AppCompatActivity {
         Drawer = findViewById(R.id.drawer);
         Drawer.setOnClickListener(null);    // 클릭으로 열고 닫히는 기능 막기
 
-        String[] dropdownItems3 = {"Home", "Work", "Other", "Custom"};
-        Spinner customSpinner3 = findViewById(R.id.type_1);
-        ArrayAdapter<String> adapter3 = new ArrayAdapter<>(
-                this,
-                R.layout.item_list,
-                dropdownItems3
-        );
-        adapter3.setDropDownViewResource(R.layout.item_list);
-        customSpinner3.setAdapter(adapter3);
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         new getAreaFromLocation().execute();
 
         // 하위 지역 스피너 초기화 (더미 데이터 설정)
-        List<String> dummySubLocality = new ArrayList<>();
+        Map<String, String> dummySubLocality = new LinkedHashMap<>();
         setupSubLocalitySpinner(dummySubLocality);
+
+        new getTourType().execute();
+
+        searchBtn = findViewById(R.id.search_btn);
+        searchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new getSearchTour().execute();
+            }
+        });
     }
 
     @Override
@@ -144,7 +153,8 @@ public class TourType extends AppCompatActivity {
 
                 int eventType = parser.getEventType();
                 String tagName;
-                String name = null, codeValue = null;
+                String name = null;
+                String codeValue = null;
 
                 while (eventType != XmlPullParser.END_DOCUMENT) {
                     if (eventType == XmlPullParser.START_TAG) {
@@ -223,7 +233,7 @@ public class TourType extends AppCompatActivity {
 
                 String selectedName = areaNames.get(position);  // 실제 전달 해야 할 값 <code> = 31
                 selectedAreaCode = areaData.get(selectedName);  // 선택된 이름으로 코드 조회
-                Log.d("selectedAreaCode", "Selected Area Code: " + selectedAreaCode);
+                Log.d("selectedAreaCode   ", "Selected Area Code   " + selectedAreaCode);
 
                 new getsubLocalityFromLocation().execute(); // 하위 지역 데이터 로드
             }
@@ -234,11 +244,11 @@ public class TourType extends AppCompatActivity {
         });
     }
 
-    public class getsubLocalityFromLocation extends AsyncTask<Void, Void, List<String>>{
+    public class getsubLocalityFromLocation extends AsyncTask<Void, Void, Map<String, String>> {
 
         @Override
-        protected List<String> doInBackground(Void... voids) {
-            List<String> subLocalityNames = new ArrayList<>();
+        protected Map<String, String> doInBackground(Void... voids) {
+            Map<String, String> subLocalityNames = new LinkedHashMap<>();
             try {
                 String code = "e8KTlQRE/BEp0/kRGPGRPDSk2HBjZn253hX1jPyfCE1txYtnRw/Q2n6xRhMx1yHBcah8IxLOsCSrVsejfw4vhQ==";
                 String queryUrl = "http://apis.data.go.kr/B551011/KorPetTourService/areaCode?serviceKey="
@@ -247,6 +257,7 @@ public class TourType extends AppCompatActivity {
                         + "&pageNo=1&numOfRows=50&MobileOS=ETC&MobileApp=AppTest";
 
                 Log.d("queryUrl   ", "queryUrl   " + queryUrl);
+                Log.d("selectedAreaCode   ", "selectedAreaCode   " + selectedAreaCode);
 
                 URL url = new URL(queryUrl);
                 InputStream inputStream = url.openStream();
@@ -258,6 +269,7 @@ public class TourType extends AppCompatActivity {
                 int eventType = parser.getEventType();
                 String tagName;
                 String subLocalityName = null;
+                String codeValue = null;
 
                 while (eventType != XmlPullParser.END_DOCUMENT) {
                     if (eventType == XmlPullParser.START_TAG) {
@@ -265,12 +277,16 @@ public class TourType extends AppCompatActivity {
                         if (tagName.equals("name")) {
                             parser.next();
                             subLocalityName = parser.getText();
+                        } else if (tagName.equals("code")) {
+                            parser.next();
+                            codeValue = parser.getText();
                         }
                     } else if (eventType == XmlPullParser.END_TAG) {
                         tagName = parser.getName();
-                        if (tagName.equals("item") && subLocalityName != null) {
-                            subLocalityNames.add(subLocalityName);
+                        if (tagName.equals("item") && subLocalityName != null && codeValue != null) {
+                            subLocalityNames.put(subLocalityName, codeValue);
                             subLocalityName = null;
+                            codeValue = null;
                         }
                     }
                     eventType = parser.next();
@@ -283,7 +299,7 @@ public class TourType extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(List<String> subLocalityNames) {
+        protected void onPostExecute(Map<String, String> subLocalityNames) {
             super.onPostExecute(subLocalityNames);
             if (!subLocalityNames.isEmpty()) {
                 setupSubLocalitySpinner(subLocalityNames);
@@ -291,14 +307,15 @@ public class TourType extends AppCompatActivity {
         }
     }
 
-    private void setupSubLocalitySpinner(List<String> subLocalityNames) {
+    private void setupSubLocalitySpinner(Map<String, String> subLocalityNames) {
         Spinner subLocalitySpinner = findViewById(R.id.subLocality);
-        subLocalityNames.add(0, "시/군/구 선택");
+        List<String> subLocalityList = new ArrayList<>(subLocalityNames.keySet());
+        subLocalityList.add(0, "시/군/구 선택");
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
                 this,
                 R.layout.item_list,
-                subLocalityNames
+                subLocalityList
         ) {
             @Override
             public boolean isEnabled(int position) {
@@ -326,7 +343,11 @@ public class TourType extends AppCompatActivity {
                     return;
                 }
                 String selectedItem = (String) parent.getItemAtPosition(position);
-                Log.d("Spinner", "선택된 아이템: " + selectedItem);
+                Log.d("Spinner1   ", "선택된 아이템   " + selectedItem);
+
+                String selectedSubName = subLocalityList.get(position);
+                selectedSubLocalityCode = subLocalityNames.get(selectedSubName);
+                Log.d("selectedSubLocalityCode   ", "selectedSubLocalityCode   " + selectedSubLocalityCode);
             }
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
@@ -334,5 +355,223 @@ public class TourType extends AppCompatActivity {
             }
         });
     }
-}
 
+    public class getTourType extends AsyncTask<Void, Void, Map<String, String>> {
+
+        @Override
+        protected Map<String, String> doInBackground(Void... voids) {
+            Map<String, String> tourType = new LinkedHashMap<>();
+
+            try {
+                String code = "e8KTlQRE/BEp0/kRGPGRPDSk2HBjZn253hX1jPyfCE1txYtnRw/Q2n6xRhMx1yHBcah8IxLOsCSrVsejfw4vhQ==";
+                String queryUrl = "http://apis.data.go.kr/B551011/KorPetTourService/categoryCode?serviceKey="
+                        + code
+                        + "&numOfRows=10&pageNo=1&MobileOS=ETC&MobileApp=AppTest";
+
+                URL url = new URL(queryUrl);
+                InputStream inputStream = url.openStream();
+
+                XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+                XmlPullParser parser = factory.newPullParser();
+                parser.setInput(new InputStreamReader(inputStream, "UTF-8"));
+
+                int eventType = parser.getEventType();
+                String tagName;
+                String typeName = null;
+                String codeValue = null;
+
+                while (eventType != XmlPullParser.END_DOCUMENT) {
+                    if (eventType == XmlPullParser.START_TAG) {
+                        tagName = parser.getName();
+                        if (tagName.equals("name")) {
+                            parser.next();
+                            typeName = parser.getText();
+                        } else if (tagName.equals("code")) {
+                            parser.next();
+                            codeValue = parser.getText();
+                        }
+                    } else if (eventType == XmlPullParser.END_TAG) {
+                        tagName = parser.getName();
+                        if (tagName.equals("item") && typeName != null && codeValue != null) {
+                            tourType.put(typeName, codeValue);
+                            typeName = null;
+                        }
+                    }
+                    eventType = parser.next();
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return tourType;
+        }
+
+        @Override
+        protected void onPostExecute(Map<String, String> tourTypes) {
+            super.onPostExecute(tourTypes);
+            if (!tourTypes.isEmpty()) {
+                setupTourTypeSpinner(tourTypes);
+            }
+        }
+    }
+
+    private void setupTourTypeSpinner(Map<String, String> tourTypes) {
+        Spinner TourType = findViewById(R.id.tour_type);
+        List<String> tourTypesList = new ArrayList<>(tourTypes.keySet());
+        tourTypesList.add(0, "관광 타입 선택");
+
+        ArrayAdapter<String> tourAdapter = new ArrayAdapter<String>(
+                this,
+                R.layout.item_list,
+                tourTypesList
+        ) {
+            @Override
+            public boolean isEnabled(int position) {
+                return position != 0;
+            }
+
+            @Override
+            public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                View view = super.getDropDownView(position, convertView, parent);
+                TextView tv = (TextView) view;
+                if (position == 0) {
+                    tv.setTextColor(getColor(R.color.gray));
+                } else {
+                    tv.setTextColor(getColor(R.color.black));
+                }
+                return view;
+            }
+        };
+        tourAdapter.setDropDownViewResource(R.layout.item_list);
+        TourType.setAdapter(tourAdapter);
+        TourType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position == 0) {
+                    return;
+                }
+//                String selectedItem = (String) parent.getItemAtPosition(position);
+                selectedTourItem = (String) parent.getItemAtPosition(position);
+                Log.d("Spinner2   ", "선택된 아이템   " + selectedTourItem);
+
+                String selectedTourType = tourTypesList.get(position);
+                selectedTourTypeCode = tourTypes.get(selectedTourType);
+                Log.d("selectedTourTypeCode   ", "selectedTourTypeCode   " + selectedTourTypeCode);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+    }
+
+    public class getSearchTour extends AsyncTask<Void, Void, Map<String, Map<String, String>>> {
+
+        @Override
+        protected Map<String, Map<String, String>> doInBackground(Void... voids) {
+            Map<String, Map<String, String>> searchTour = new LinkedHashMap<>();
+            try {
+                String code = "e8KTlQRE/BEp0/kRGPGRPDSk2HBjZn253hX1jPyfCE1txYtnRw/Q2n6xRhMx1yHBcah8IxLOsCSrVsejfw4vhQ==";
+                String queryUrl = "http://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey="
+                        + code
+                        + "&pageNo=1&numOfRows=50&listYN=Y&arrange=A"
+                        + "&areaCode=" + selectedAreaCode
+                        + "&sigunguCode=" + selectedSubLocalityCode
+                        + "&cat1=" + selectedTourTypeCode
+                        + "&MobileOS=ETC&MobileApp=AppTest";
+
+                URL url = new URL(queryUrl);
+                InputStream inputStream = url.openStream();
+
+                XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+                XmlPullParser parser = factory.newPullParser();
+                parser.setInput(new InputStreamReader(inputStream, "UTF-8"));
+
+                int eventType = parser.getEventType();
+                String tagName;
+                String title = null;
+                String addr = null;
+                String type = null;
+
+                while (eventType != XmlPullParser.END_DOCUMENT) {
+                    if (eventType == XmlPullParser.START_TAG) {
+                        tagName = parser.getName();
+                        if (tagName.equals("title")) {
+                            parser.next();
+                            title = parser.getText();
+                        } else if (tagName.equals("addr1")) {
+                            parser.next();
+                            addr = parser.getText();
+                        } else if (tagName.equals("cat1")) {
+                            parser.next();
+                            type = parser.getText();
+                        }
+                    } else if (eventType == XmlPullParser.END_TAG) {
+                        tagName = parser.getName();
+                        if (tagName.equals("item") && title != null && addr != null && type != null) {
+                            // 개별 데이터를 Map에 저장
+                            Map<String, String> itemData = new LinkedHashMap<>();
+                            itemData.put("addr", addr);
+                            itemData.put("type", type);
+
+                            // title을 키로 전체 데이터를 저장
+                            searchTour.put(title, itemData);
+
+                            // 변수 초기화
+                            title = null;
+                            addr = null;
+                            type = null;
+                        }
+                    }
+                    eventType = parser.next();
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return searchTour;
+        }
+
+        @Override
+        protected void onPostExecute(Map<String, Map<String, String>> tourMapMap) {
+            super.onPostExecute(tourMapMap);
+            if (!tourMapMap.isEmpty()) {
+                setupTourList(tourMapMap);
+            }
+        }
+    }
+
+//    private void setupTourList(Map<String, Map<String, String>> tourMapMap) {
+//        tourResultRecycle = findViewById(R.id.tour_result_recycle);
+//        mTourTypeAdapter = new TourTypeAdapter((List<TourTypeData>) tourMapMap);
+//        tourResultRecycle.setAdapter(mTourTypeAdapter);
+//        tourResultRecycle.setHasFixedSize(true);
+//        tourResultRecycle.setLayoutManager(new LinearLayoutManager(this));
+//    }
+
+    private void setupTourList(Map<String, Map<String, String>> tourMapMap) {
+        tourResultRecycle = findViewById(R.id.tour_result_recycle);
+        // java.lang.ClassCastException: java.util.LinkedHashMap cannot be cast to java.util.List 에러
+        // tourMapMap이 Map<String, Map<String, String>> 타입인데 이를 List<TourTypeData>로 강제 변환하려고 했기 때문에 발생
+        // Map 데이터를 List<TourTypeData>로 변환
+        List<TourTypeData> tourTypeDataList = new ArrayList<>();
+        for (Map.Entry<String, Map<String, String>> entry : tourMapMap.entrySet()) {
+            String title = entry.getKey();
+            Map<String, String> itemData = entry.getValue();
+            String address = itemData.get("addr");
+            String tourType = selectedTourItem;
+            Log.d("tourType   ", "tourType   " + tourType);
+
+            // TourTypeData 객체 생성
+            TourTypeData tourTypeData = new TourTypeData(title, tourType, address);
+            tourTypeDataList.add(tourTypeData);
+        }
+        // 어댑터에 리스트 전달
+        mTourTypeAdapter = new TourTypeAdapter(tourTypeDataList);
+        tourResultRecycle.setAdapter(mTourTypeAdapter);
+        tourResultRecycle.setHasFixedSize(true);
+        tourResultRecycle.setLayoutManager(new LinearLayoutManager(this));
+
+    }
+}

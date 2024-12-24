@@ -50,7 +50,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/addr1"
+            android:id="@+id/tour_type"
             android:layout_width="match_parent"
             android:layout_height="25dp"
             android:layout_marginTop="5dp"
@@ -59,7 +59,7 @@
             >
 
             <TextView
-                android:id="@+id/addr1_tv"
+                android:id="@+id/tour_type_tv"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:textColor="#999999"
@@ -72,7 +72,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/cat1"
+            android:id="@+id/addr"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -81,7 +81,7 @@
             >
 
             <TextView
-                android:id="@+id/cat1_tv"
+                android:id="@+id/addr_tv"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:textColor="#171717"
