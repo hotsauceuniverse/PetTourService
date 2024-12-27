@@ -1,6 +1,8 @@
 package com.seyoung.pettourservice;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -22,6 +24,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.kakao.vectormap.KakaoMap;
@@ -56,6 +59,7 @@ public class TourType extends AppCompatActivity {
     RecyclerView tourResultRecycle;
     private TourTypeAdapter mTourTypeAdapter;
     String selectedTourItem;
+    LottieAnimationView noDataAnim;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -538,6 +542,17 @@ public class TourType extends AppCompatActivity {
             super.onPostExecute(tourMapMap);
             if (!tourMapMap.isEmpty()) {
                 setupTourList(tourMapMap);
+                noDataAnim.setVisibility(View.GONE);
+            } else {
+                // RecyclerView에 "데이터가 없습니다" 메시지 표시
+                tourResultRecycle = findViewById(R.id.tour_result_recycle);
+                tourResultRecycle.setLayoutManager(new LinearLayoutManager(TourType.this));
+                List<TourTypeData> emptyList = new ArrayList<>();
+                TourTypeAdapter emptyAdapter = new TourTypeAdapter(emptyList);
+                tourResultRecycle.setAdapter(emptyAdapter);
+
+                noDataAnim = findViewById(R.id.no_data_anim);
+                noDataAnim.setVisibility(View.VISIBLE);
             }
         }
     }

@@ -9,6 +9,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.airbnb.lottie.LottieAnimationView;
+
 import java.util.List;
 
 public class TourTypeAdapter extends RecyclerView.Adapter<TourTypeAdapter.ViewHolder> {
@@ -47,17 +49,14 @@ public class TourTypeAdapter extends RecyclerView.Adapter<TourTypeAdapter.ViewHo
         public TextView title_tv;
         public TextView tour_type_tv;
         public TextView address_tv;
-        public TextView noData;
+        public LottieAnimationView noDataAnim;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             title_tv = itemView.findViewById(R.id.title_tv);
             tour_type_tv = itemView.findViewById(R.id.tour_type_tv);
             address_tv = itemView.findViewById(R.id.addr_tv);
-            noData = itemView.findViewById(R.id.no_data);
+            noDataAnim = itemView.findViewById(R.id.no_data_anim);
         }
     }
 }
-
-
-//데이터 없을때 데이터 없음 텍스트 출력
